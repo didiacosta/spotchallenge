@@ -78,7 +78,7 @@ WSGI_APPLICATION = 'spotchallenge.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'song.sqlite3',
+        'NAME': str(BASE_DIR / 'song.sqlite3'),
     }
 }
 
@@ -125,3 +125,12 @@ STATIC_URL = '/static/'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    'PAGE_SIZE': 20, 
+    'DEFAULT_PAGINATION_CLASS': 'utilities.pagination.CustomPagination'
+}
+
