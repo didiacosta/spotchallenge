@@ -3,7 +3,8 @@ import json
 import requests
 import os
 try:
-	os.remove('song.sqlite3')
+	if os.path.exists('song.sqlite3'):
+		os.remove('song.sqlite3')
 	connection = sqlite3.connect('song.sqlite3')
 	cursor = connection.cursor()
 	print('creating database song.sqlite3...')

@@ -6,6 +6,7 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 import json
 import sqlite3
+import math
 
 from .models import Song
 from .serializers import SongSerializer
@@ -82,22 +83,108 @@ class SongViewSet(viewsets.ModelViewSet):
 					'artworkUrl100': row['artworkUrl100'],
 					'genres': objGenres
 					})
-
-			return Response(Structure.success('', dataReturn),
-				status=status.HTTP_200_OK)			
+			if page:
+				page = int(page)
+				perPage = 10
+				totalPage = math.ceil(len(dataReturn) / perPage)
+				
+				if page <= int(totalPage):
+					if page == 1:
+						objectfrom = 0
+						objectTo = perPage
+					else:
+						objectfrom = ((page - 1) * perPage)
+						objectTo = objectfrom + perPage
+					data = {
+						'page': page,
+						'perPage': perPage,
+						'totalPages': int(totalPage),
+						'results': dataReturn[objectfrom:objectTo],
+						'next': page + 1 if page < totalPage else None,
+						'previus': page - 1 if page > 1 else None
+					}
+					return Response(Structure.success('', data),
+						status=status.HTTP_200_OK)
+				else:
+					return Response(
+						Structure.warning(
+							'The param page must be less than or equals to total pages (' + 
+							str(int(totalPage)) +')'),
+					 status = status.HTTP_400_BAD_REQUEST)
+			else:
+				return Response(Structure.success('', dataReturn),
+					status=status.HTTP_200_OK)			
 
 		except Exception as e:
-			print (e)
 			return Response(Structure.error500(e), status = status.HTTP_400_BAD_REQUEST)
-			
-
-
 
 	def create(self, request, *args, **kwargs):
-		pass
+		try:
+			if request.method == 'POST':
+				artistName = request.data['artistName'] if 'artistName' in request.data else None
+				name = request.data['name'] if 'name' in request.data else None
+				id = request.data['id'] if 'id' in request.data else None
+				releaseDate = request.data['releaseDate'] if 'releaseDate' in request.data else None
+				kind = request.data['kind'] if 'kind' in request.data else None
+				artistId = request.data['artistId'] if 'artistId' in request.data else None
+				artistUrl = request.data['artistUrl'] if 'artistUrl' in request.data else None
+				contentAdvisoryRating = request.data['contentAdvisoryRating'] if 'contentAdvisoryRating' in request.data else ''
+				artworkUrl100 = request.data['artworkUrl100'] if 'artworkUrl100' in request.data else None
+				genresId = request.data['genresId'] if 'genresId' in request.data else None
 
-	def destroy(self,request,*args,**kwargs):
-		pass
+				
+
+				if artistName and id and name and releaseDate and kind and artistId and artistUrl and artworkUrl100 and genresId:
+					genresValue = ''
+					if genresId == '34':
+						return Response(
+							Structure.warning(
+								'The param genres value is not permited'),
+						 status = status.HTTP_400_BAD_REQUEST)
+					else:
+						sqlCommand = "SELECT DISTINCT genres FROM song WHERE genres like '%\"" + genresId + "\"%'"
+						sqlCommand = sqlCommand.replace('\\','')
+						
+						connection = sqlite3.connect('song.sqlite3')
+						cursor = connection.cursor()
+						cursor.execute(sqlCommand)
+						for value in cursor.fetchall():
+							genresValue = value[0]
+							break
+
+					lastId = self.model.objects.all().order_by('customId').last().customId if self.model.objects.all().order_by('customId').last() else 0
+					lastId = int(lastId) + 1
+					song = Song(
+						customId = lastId,
+						id = id,
+						artistName = artistName,
+						name = name,
+						releaseDate = releaseDate,
+						kind = kind,
+						artistId = artistId,
+						artistUrl = artistUrl,
+						contentAdvisoryRating = contentAdvisoryRating,
+						artworkUrl100 = artworkUrl100,
+						genres = genresValue
+						)
+					song.save()
+					return Response(Structure.success('The song has been added succesfully', None),
+						status=status.HTTP_200_OK)
+
+				else:
+					return Response(
+						Structure.warning(
+							'The params required were not received'),
+					 status = status.HTTP_400_BAD_REQUEST)
+			else:
+				return Response(
+					Structure.warning(
+						'Method is not permited'),
+				 status = status.HTTP_400_BAD_REQUEST)				
+
+		except Exception as e:
+			print(e)
+			return Response(Structure.error500(e), status = status.HTTP_400_BAD_REQUEST)
 
 	@action(methods=['delete'], detail=False, url_path='delete', url_name='song.delete')
 	def delete(self, request, *args, **kwargs):
