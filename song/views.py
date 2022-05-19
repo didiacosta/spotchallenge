@@ -35,6 +35,7 @@ class SongViewSet(viewsets.ModelViewSet):
 		dateReleaseFrom = self.request.query_params.get('dateReleaseFrom', None)
 		dateReleaseTo = self.request.query_params.get('dateReleaseTo', None)
 		genreName = self.request.query_params.get('genreName', None)
+		top50 = self.request.query_params.get('top50', None)
 		page = self.request.query_params.get('page', None)
 
 		try:
@@ -112,8 +113,12 @@ class SongViewSet(viewsets.ModelViewSet):
 							str(int(totalPage)) +')'),
 					 status = status.HTTP_400_BAD_REQUEST)
 			else:
-				return Response(Structure.success('', dataReturn),
-					status=status.HTTP_200_OK)			
+				if top50:
+					return Response(Structure.success('', dataReturn[0:50]),
+						status=status.HTTP_200_OK)								
+				else:
+					return Response(Structure.success('', dataReturn),
+						status=status.HTTP_200_OK)			
 
 		except Exception as e:
 			return Response(Structure.error500(e), status = status.HTTP_400_BAD_REQUEST)
