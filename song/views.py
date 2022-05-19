@@ -84,41 +84,45 @@ class SongViewSet(viewsets.ModelViewSet):
 					'artworkUrl100': row['artworkUrl100'],
 					'genres': objGenres
 					})
-			if page:
-				page = int(page)
-				perPage = 10
-				totalPage = math.ceil(len(dataReturn) / perPage)
-				
-				if page <= int(totalPage):
-					if page == 1:
-						objectfrom = 0
-						objectTo = perPage
+			if len(dataReturn) > 0:
+				if page:
+					page = int(page)
+					perPage = 10
+					totalPage = math.ceil(len(dataReturn) / perPage)
+					
+					if page <= int(totalPage):
+						if page == 1:
+							objectfrom = 0
+							objectTo = perPage
+						else:
+							objectfrom = ((page - 1) * perPage)
+							objectTo = objectfrom + perPage
+						data = {
+							'page': page,
+							'perPage': perPage,
+							'totalPages': int(totalPage),
+							'results': dataReturn[objectfrom:objectTo],
+							'next': page + 1 if page < totalPage else None,
+							'previus': page - 1 if page > 1 else None
+						}
+						return Response(Structure.success('', data),
+							status=status.HTTP_200_OK)
 					else:
-						objectfrom = ((page - 1) * perPage)
-						objectTo = objectfrom + perPage
-					data = {
-						'page': page,
-						'perPage': perPage,
-						'totalPages': int(totalPage),
-						'results': dataReturn[objectfrom:objectTo],
-						'next': page + 1 if page < totalPage else None,
-						'previus': page - 1 if page > 1 else None
-					}
-					return Response(Structure.success('', data),
-						status=status.HTTP_200_OK)
+						return Response(
+							Structure.warning(
+								'The param page must be less than or equals to total pages (' + 
+								str(int(totalPage)) +')'),
+						 status = status.HTTP_400_BAD_REQUEST)
 				else:
-					return Response(
-						Structure.warning(
-							'The param page must be less than or equals to total pages (' + 
-							str(int(totalPage)) +')'),
-					 status = status.HTTP_400_BAD_REQUEST)
+					if top50:
+						return Response(Structure.success('', dataReturn[0:50]),
+							status=status.HTTP_200_OK)								
+					else:
+						return Response(Structure.success('', dataReturn),
+							status=status.HTTP_200_OK)
 			else:
-				if top50:
-					return Response(Structure.success('', dataReturn[0:50]),
-						status=status.HTTP_200_OK)								
-				else:
-					return Response(Structure.success('', dataReturn),
-						status=status.HTTP_200_OK)			
+				return Response(Structure.success("We can't find songs", []),
+					status=status.HTTP_200_OK)				
 
 		except Exception as e:
 			return Response(Structure.error500(e), status = status.HTTP_400_BAD_REQUEST)
