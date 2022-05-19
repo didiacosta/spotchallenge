@@ -37,6 +37,7 @@ class SongViewSet(viewsets.ModelViewSet):
 		genreName = self.request.query_params.get('genreName', None)
 		top50 = self.request.query_params.get('top50', None)
 		page = self.request.query_params.get('page', None)
+		groupByGenre = self.request.query_params.get('groupByGenre', None)
 
 		try:
 			sqlCommand = "SELECT * FROM song WHERE id <> 0 "
@@ -97,6 +98,10 @@ class SongViewSet(viewsets.ModelViewSet):
 						else:
 							objectfrom = ((page - 1) * perPage)
 							objectTo = objectfrom + perPage
+
+						if groupByGenre:
+							dataReturn = self.getGroupByGenre(dataReturn)
+
 						data = {
 							'page': page,
 							'perPage': perPage,
@@ -114,6 +119,8 @@ class SongViewSet(viewsets.ModelViewSet):
 								str(int(totalPage)) +')'),
 						 status = status.HTTP_400_BAD_REQUEST)
 				else:
+					if groupByGenre:
+						dataReturn = self.getGroupByGenre(dataReturn)
 					if top50:
 						return Response(Structure.success('', dataReturn[0:50]),
 							status=status.HTTP_200_OK)								
@@ -209,3 +216,26 @@ class SongViewSet(viewsets.ModelViewSet):
 				 status = status.HTTP_400_BAD_REQUEST)
 		except Exception as e:
 			return Response(Structure.error500(e), status = status.HTTP_400_BAD_REQUEST)
+
+	
+	def getGroupByGenre(self, data):
+		try:
+			genres = []
+			returnArray = []
+			for obj in data:
+				if not obj['genres'] in genres:
+					genres.append(obj['genres'])
+
+			for gen in genres:
+				songs = []
+				for obj in data:
+					if gen == obj['genres']:
+						songs.append(obj)
+				returnArray.append(
+					{
+					'genre': gen,
+					'songs': songs
+					})
+			return returnArray
+		except Exception as e:
+			raise e
