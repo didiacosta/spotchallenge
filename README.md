@@ -14,8 +14,8 @@ I did do the project using Django Framework.
 estructura JSON response services develop:
 ```json
 {
-    "status": "success" | "warning" | "error",
-    "message": '',
+    "status": "success",
+    "message": "",
     "data": {
         "page": 1,
         "perPage": 10,
@@ -32,14 +32,15 @@ Url endpoint: **http://localhost:8000/api/song/**
 
 | Param | Usage |
 | ------ | ------ |
-| name | Allow to search songs using their name |
-| artistName |  Allow to search songs using the artist name |
-| id |  Allow to search songs using their id |
-| dateReleaseFrom |  Allow to find songs where their release date is greater than the received param |
-| dateReleaseTo |Allow to find songs where their release date is less than the received param |
-| genreName | Allow to search songs using their genre name |
+| name | Allow to search tracks using their name |
+| artistName |  Allow to search tracks using the artist name |
+| id |  Allow to search tracks using their id |
+| dateReleaseFrom |  Allow to find tracks where their release date is greater than the received param |
+| dateReleaseTo |Allow to find tracks where their release date is less than the received param |
+| genreName | Allow to search tracks using their genre name |
 | top50 | Allow to get the top 50 popularity tracks |
 | page | Allow to get the registers paginated, showing 10 rows per page. If this param is not sended, the endpoint will return all the rows. When this param is sended the service will return: page, total pages and rows as results property|
+| groupByGenre | Allow to get the tracks grouped by genres. You must to send 1 as value for this param |
 >the params can be combined by to do especific filters.
 >I Used SQL instead of ORM only for SELECT queries.
 
